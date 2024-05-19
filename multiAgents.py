@@ -11,6 +11,9 @@
 # Student side autograding was added by Brad Miller, Nick Hay, and
 # Pieter Abbeel (pabbeel@cs.berkeley.edu).
 
+# CSS 382 Project 2
+# Authors: Don Hoang, James Woo
+# Date: 5/18/2024
 
 from util import manhattanDistance
 from game import Directions
@@ -154,7 +157,7 @@ class MinimaxAgent(MultiAgentSearchAgent):
         index = 0
         max = -9999999
         finalAction = None
-        def minimax(gameState, index, currDepth):
+        def Minimax(gameState, index, currDepth):
             # Check if we have reached the last ghost
             if index == gameState.getNumAgents():
                 index = 0
@@ -169,7 +172,7 @@ class MinimaxAgent(MultiAgentSearchAgent):
                 moves = gameState.getLegalActions(index)
                 for move in moves:
                     nextState = gameState.generateSuccessor(index, move)
-                    score = minimax(nextState, index + 1, currDepth)
+                    score = Minimax(nextState, index + 1, currDepth)
                     if score > max:
                         max = score
                         action = move
@@ -181,7 +184,7 @@ class MinimaxAgent(MultiAgentSearchAgent):
                 moves = gameState.getLegalActions(index)
                 for move in moves:
                     state = gameState.generateSuccessor(index, move)
-                    temp = minimax(state, index + 1, currDepth)
+                    temp = Minimax(state, index + 1, currDepth)
                     if temp < min:
                         min = temp
                         action = move
@@ -190,7 +193,7 @@ class MinimaxAgent(MultiAgentSearchAgent):
         finalMove = gameState.getLegalActions(index)
         for move in finalMove:
             nextState = gameState.generateSuccessor(index, move)
-            score = minimax(nextState, index + 1, 0)
+            score = Minimax(nextState, index + 1, 0)
             if score > max:
                 max = score
                 finalAction = move
@@ -208,59 +211,58 @@ class AlphaBetaAgent(MultiAgentSearchAgent):
         "*** YOUR CODE HERE ***"
         index = 0
         finalAction = None
-        def AlphaBetaAgent(gameState, index, currDepth, alpha, beta):
-            max = -9999999
-            min = 9999999
+        def Alphabeta(state, index, currDepth, alpha, beta):
+            maxNumber = -9999
+            minNumber = 9999
             action = None
             # Check if we have reached the last ghost
-            if index == gameState.getNumAgents():
+            if index == state.getNumAgents():
                 index = 0
                 currDepth += 1
             # Check if the game is over or if we have reached the depth
-            if gameState.isWin() or gameState.isLose() or currDepth == self.depth:
-                return self.evaluationFunction(gameState)
+            if state.isWin() or state.isLose() or currDepth == self.depth:
+                return self.evaluationFunction(state)
             # If it is pacman's turn
             if index == 0:
                 action = None
-                moves = gameState.getLegalActions(index)
+                moves = state.getLegalActions(index)
                 for move in moves:
-                    nextState = gameState.generateSuccessor(index, move)
-                    score = AlphaBetaAgent(nextState, index + 1, currDepth, alpha, beta)
-                    if score > max:
-                        max = score
+                    tempState = state.generateSuccessor(index, move)
+                    tempMax = Alphabeta(tempState, index + 1, currDepth, alpha, beta)
+                    if tempMax > maxNumber:
+                        maxNumber = tempMax
                         action = move
-                    if max > beta:
-                        return max
-                    alpha = max(alpha, max)
-                return max
+                    if maxNumber > beta:
+                        return maxNumber
+                    alpha = max(alpha, maxNumber)
+                return maxNumber
             # If it is the ghost's turn
             else:
                 action = None
-                moves = gameState.getLegalActions(index)
+                moves = state.getLegalActions(index)
                 for move in moves:
-                    state = gameState.generateSuccessor(index, move)
-                    temp = AlphaBetaAgent(state, index + 1, currDepth, alpha, beta)
-                    if temp < min:
-                        min = temp
+                    tempState = state.generateSuccessor(index, move)
+                    tempMin = Alphabeta(tempState, index + 1, currDepth, alpha, beta)
+                    if tempMin < minNumber:
+                        minNumber = tempMin
                         action = move
-                    if min < alpha:
-                        return min
-                    beta = min(beta, min)
-                return min
+                    if minNumber < alpha:
+                        return minNumber
+                    beta = min(beta, minNumber)
+                return minNumber
         # Get the legal moves for pacman
-        alpha = -9999999
-        beta = 9999999
-        moves = gameState.getLegalActions(index)
-        for move in moves:
-            nextState = gameState.generateSuccessor(index, move)
-            score = AlphaBetaAgent(nextState, index + 1, 0, alpha, beta)
-            if score > alpha:
-                alpha = score
+        alpha = -9999
+        beta = 9999
+        finalMove = gameState.getLegalActions(index)
+        for move in finalMove:
+            tempState = gameState.generateSuccessor(index, move)
+            temp = Alphabeta(tempState, index + 1, 0, alpha, beta)
+            if temp > alpha:
+                alpha = temp
                 finalAction = move
             if alpha > beta:
                 break
         return finalAction
-        
 
 class ExpectimaxAgent(MultiAgentSearchAgent):
     """
@@ -279,7 +281,7 @@ class ExpectimaxAgent(MultiAgentSearchAgent):
         finalAction = None
         max = -9999999
 
-        def ExpectimaxAgent(gameState, index, currDepth):
+        def Expectimax(gameState, index, currDepth):
             # Check if we have reached the last ghost
             if index == gameState.getNumAgents():
                 index = 0
@@ -294,7 +296,7 @@ class ExpectimaxAgent(MultiAgentSearchAgent):
                 moves = gameState.getLegalActions(index)
                 for move in moves:
                     nextState = gameState.generateSuccessor(index, move)
-                    score = ExpectimaxAgent(nextState, index + 1, currDepth)
+                    score = Expectimax(nextState, index + 1, currDepth)
                     if score > max:
                         max = score
                         action = move
@@ -306,14 +308,14 @@ class ExpectimaxAgent(MultiAgentSearchAgent):
                 moves = gameState.getLegalActions(index)
                 for move in moves:
                     state = gameState.generateSuccessor(index, move)
-                    temp = ExpectimaxAgent(state, index + 1, currDepth)
+                    temp = Expectimax(state, index + 1, currDepth)
                     total += temp
                 return total / len(moves)
         # Get the legal moves for pacman
         finalMove = gameState.getLegalActions(index)
         for move in finalMove:
             nextState = gameState.generateSuccessor(index, move)
-            score = ExpectimaxAgent(nextState, index + 1, 0)
+            score = Expectimax(nextState, index + 1, 0)
             if score > max:
                 max = score
                 finalAction = move
@@ -329,8 +331,7 @@ def betterEvaluationFunction(currentGameState):
     - The closest food
     - The closest ghost
     - The number of pellets left
-    - The score of the current game state
-    and evaluates the game state based on these factors.
+    - The score of the current game state and evaluates the game state based on these factors.
     """
     "*** YOUR CODE HERE ***"
     position = currentGameState.getPacmanPosition()
