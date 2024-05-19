@@ -74,7 +74,23 @@ class ReflexAgent(Agent):
         newScaredTimes = [ghostState.scaredTimer for ghostState in newGhostStates]
 
         "*** YOUR CODE HERE ***"
-        return successorGameState.getScore()
+        foodLeft = newFood.count()
+        closestFood = 9999999
+        closestGhost = 9999999
+        ghostScared = 0
+        for food in newFood.asList():
+            dist = manhattanDistance(newPos, food)
+            if dist < closestFood:
+                closestFood = dist
+        for ghost in newGhostStates:
+            ghostPos = ghost.getPosition()
+            dist = manhattanDistance(newPos, ghostPos)
+            if dist < closestGhost:
+                closestGhost = dist
+        if closestGhost is True:
+            return successorGameState.getScore() - (1.0 / closestGhost)
+        else:
+            return successorGameState.getScore() + (1.0 / closestFood)
 
 def scoreEvaluationFunction(currentGameState):
     """
@@ -135,7 +151,50 @@ class MinimaxAgent(MultiAgentSearchAgent):
         Returns whether or not the game state is a losing state
         """
         "*** YOUR CODE HERE ***"
-        util.raiseNotDefined()
+        index = 0
+        max = -9999999
+        finalAction = None
+        def minimax(gameState, index, currDepth):
+            # Check if we have reached the last ghost
+            if index == gameState.getNumAgents():
+                index = 0
+                currDepth += 1
+            # Check if the game is over or if we have reached the depth
+            if gameState.isWin() or gameState.isLose() or currDepth == self.depth:
+                return self.evaluationFunction(gameState)
+            # If it is pacman's turn
+            if index == 0:
+                max = -9999999
+                action = None 
+                moves = gameState.getLegalActions(index)
+                for move in moves:
+                    nextState = gameState.generateSuccessor(index, move)
+                    score = minimax(nextState, index + 1, currDepth)
+                    if score > max:
+                        max = score
+                        action = move
+                return max
+            # If it is the ghost's turn
+            else:
+                min = 9999999
+                action = None
+                moves = gameState.getLegalActions(index)
+                for move in moves:
+                    state = gameState.generateSuccessor(index, move)
+                    temp = minimax(state, index + 1, currDepth)
+                    if temp < min:
+                        min = temp
+                        action = move
+                return min
+        # Get the legal moves for pacman
+        finalMove = gameState.getLegalActions(index)
+        for move in finalMove:
+            nextState = gameState.generateSuccessor(index, move)
+            score = minimax(nextState, index + 1, 0)
+            if score > max:
+                max = score
+                finalAction = move
+        return finalAction
 
 class AlphaBetaAgent(MultiAgentSearchAgent):
     """
@@ -147,7 +206,61 @@ class AlphaBetaAgent(MultiAgentSearchAgent):
         Returns the minimax action using self.depth and self.evaluationFunction
         """
         "*** YOUR CODE HERE ***"
-        util.raiseNotDefined()
+        index = 0
+        finalAction = None
+        def AlphaBetaAgent(gameState, index, currDepth, alpha, beta):
+            max = -9999999
+            min = 9999999
+            action = None
+            # Check if we have reached the last ghost
+            if index == gameState.getNumAgents():
+                index = 0
+                currDepth += 1
+            # Check if the game is over or if we have reached the depth
+            if gameState.isWin() or gameState.isLose() or currDepth == self.depth:
+                return self.evaluationFunction(gameState)
+            # If it is pacman's turn
+            if index == 0:
+                action = None
+                moves = gameState.getLegalActions(index)
+                for move in moves:
+                    nextState = gameState.generateSuccessor(index, move)
+                    score = AlphaBetaAgent(nextState, index + 1, currDepth, alpha, beta)
+                    if score > max:
+                        max = score
+                        action = move
+                    if max > beta:
+                        return max
+                    alpha = max(alpha, max)
+                return max
+            # If it is the ghost's turn
+            else:
+                action = None
+                moves = gameState.getLegalActions(index)
+                for move in moves:
+                    state = gameState.generateSuccessor(index, move)
+                    temp = AlphaBetaAgent(state, index + 1, currDepth, alpha, beta)
+                    if temp < min:
+                        min = temp
+                        action = move
+                    if min < alpha:
+                        return min
+                    beta = min(beta, min)
+                return min
+        # Get the legal moves for pacman
+        alpha = -9999999
+        beta = 9999999
+        moves = gameState.getLegalActions(index)
+        for move in moves:
+            nextState = gameState.generateSuccessor(index, move)
+            score = AlphaBetaAgent(nextState, index + 1, 0, alpha, beta)
+            if score > alpha:
+                alpha = score
+                finalAction = move
+            if alpha > beta:
+                break
+        return finalAction
+        
 
 class ExpectimaxAgent(MultiAgentSearchAgent):
     """
@@ -162,17 +275,89 @@ class ExpectimaxAgent(MultiAgentSearchAgent):
         legal moves.
         """
         "*** YOUR CODE HERE ***"
-        util.raiseNotDefined()
+        index = 0
+        finalAction = None
+        max = -9999999
+
+        def ExpectimaxAgent(gameState, index, currDepth):
+            # Check if we have reached the last ghost
+            if index == gameState.getNumAgents():
+                index = 0
+                currDepth += 1
+            # Check if the game is over or if we have reached the depth
+            if gameState.isWin() or gameState.isLose() or currDepth == self.depth:
+                return self.evaluationFunction(gameState)
+            # If it is pacman's turn
+            if index == 0:
+                max = -9999999
+                action = None
+                moves = gameState.getLegalActions(index)
+                for move in moves:
+                    nextState = gameState.generateSuccessor(index, move)
+                    score = ExpectimaxAgent(nextState, index + 1, currDepth)
+                    if score > max:
+                        max = score
+                        action = move
+                return max
+            # If it is the ghost's turn
+            else:
+                total = 0
+                action = None
+                moves = gameState.getLegalActions(index)
+                for move in moves:
+                    state = gameState.generateSuccessor(index, move)
+                    temp = ExpectimaxAgent(state, index + 1, currDepth)
+                    total += temp
+                return total / len(moves)
+        # Get the legal moves for pacman
+        finalMove = gameState.getLegalActions(index)
+        for move in finalMove:
+            nextState = gameState.generateSuccessor(index, move)
+            score = ExpectimaxAgent(nextState, index + 1, 0)
+            if score > max:
+                max = score
+                finalAction = move
+        return finalAction
 
 def betterEvaluationFunction(currentGameState):
     """
     Your extreme ghost-hunting, pellet-nabbing, food-gobbling, unstoppable
     evaluation function (question 5).
 
-    DESCRIPTION: <write something here so we know what you did>
+    DESCRIPTION: 
+    This function takes into account the following:
+    - The closest food
+    - The closest ghost
+    - The number of pellets left
+    - The score of the current game state
+    and evaluates the game state based on these factors.
     """
     "*** YOUR CODE HERE ***"
-    util.raiseNotDefined()
+    position = currentGameState.getPacmanPosition()
+    food = currentGameState.getFood()
+    ghostStates = currentGameState.getGhostStates()
+    pellets = len(currentGameState.getCapsules())
 
+    # Get the closest food
+    foodClosest = 9999999
+    ghostClosest = 9999999
+    muliplierFood = 1
+    muliplierGhost = 5
+    muliplierPellets = 3
+
+    # Get the closest food and ghosts
+    for food in food.asList():
+        dist = manhattanDistance(position, food)
+        if dist < foodClosest:
+            foodClosest = dist
+    # Get the closest ghost
+    for ghost in ghostStates:
+        ghostPos = ghost.getPosition()
+        dist = manhattanDistance(position, ghostPos)
+        if dist < ghostClosest:
+            ghostClosest = dist
+    return currentGameState.getScore() + foodClosest * muliplierFood + \
+        pellets * muliplierPellets - ghostClosest * muliplierGhost
+   
 # Abbreviation
 better = betterEvaluationFunction
